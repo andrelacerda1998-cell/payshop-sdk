@@ -37,6 +37,18 @@ trait APIRequest
         ]);
     }
 
+    /**
+     * Trocar o cliente HTTP. Existe para os testes poderem pôr um
+     * MockHandler no lugar da rede — a alternativa era não haver teste
+     * nenhum sobre o que se envia à API de pagamentos.
+     */
+    public function withClient(Client $client): static
+    {
+        $this->apiClient = $client;
+
+        return $this;
+    }
+
     abstract public function getEndpoint(): string;
 
     public static function getApiToken()
