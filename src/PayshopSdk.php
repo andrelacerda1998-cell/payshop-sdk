@@ -5,6 +5,7 @@ namespace RwInteractive\PayshopSdk;
 use RwInteractive\PayshopSdk\Api\Customer;
 use RwInteractive\PayshopSdk\Api\PaymentMethods\PaymentsMethods;
 use RwInteractive\PayshopSdk\Api\Payments\PaymentOrders;
+use RwInteractive\PayshopSdk\Api\Payments\WalletPayment;
 
 class PayshopSdk {
 
@@ -49,5 +50,10 @@ class PayshopSdk {
     public static function paymentOrders(): PaymentOrders
     {
         return new PaymentOrders();
+    }
+
+    public static function wallets(): WalletPayment
+    {
+        return WalletPayment::make();
     }
 }
