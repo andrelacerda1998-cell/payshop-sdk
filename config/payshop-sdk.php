@@ -34,5 +34,8 @@ return [
         'success' => 'payshop_success_order',
         'failure' => 'payshop_failure_order',
     ],
+    // URL que o Paylands chama a cada mudança de estado de uma ordem (url_post).
+    // Vazio = não se pede aviso nenhum (o comportamento de sempre).
+    'notification_url' => env('PAYSHOP_SDK_NOTIFICATION_URL'),
     'customer_prefix' => env('PAYSHOP_SDK_CUSTOMER_PREFIX', config('app.env')),
 ];
