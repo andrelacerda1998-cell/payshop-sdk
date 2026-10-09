@@ -97,6 +97,16 @@ class PaymentOrder
             unset($postData['url_ko']);
         }
 
+        // Aviso servidor-a-servidor (`url_post`): o Paylands chama este URL de
+        // cada vez que a ordem muda de estado (cativada, cobrada, libertada,
+        // devolvida). Ao contrário de url_ok/url_ko, não depende do browser do
+        // cliente, por isso vale também para o MB Way. Só segue quando está
+        // configurado -- sem a variável, a ordem é criada como sempre foi.
+        $urlPost = config('payshop-sdk.notification_url');
+        if (is_string($urlPost) && $urlPost !== '') {
+            $postData['url_post'] = $urlPost;
+        }
+
         $response = $this->post($this->getEndpoint(), $postData);
         if (!$this->isSuccess($response)) {
             if ($response['status'] === 303) {
