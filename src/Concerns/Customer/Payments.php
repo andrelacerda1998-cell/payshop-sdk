@@ -11,6 +11,7 @@ use RwInteractive\PayshopSdk\Exceptions\InvalidPaymentMethod;
 use RwInteractive\PayshopSdk\Models\PaymentMethod;
 use RwInteractive\PayshopSdk\Models\PaymentOrder;
 use RwInteractive\PayshopSdk\PayshopSdk;
+use RwInteractive\PayshopSdk\Support\CustomerData;
 
 trait Payments
 {
@@ -35,13 +36,23 @@ trait Payments
             $this->getPhoneNumber(),
         );
 
+        // EMV 3DS (c2, c3): o telefone e o email vão também na transação, e não
+        // só no perfil do cliente (pedido da Payshop a 22/10/2026). Só o que há.
+        $profile = CustomerData::threeDsProfile(
+            $this->getFirstName(),
+            $this->getLastName(),
+            $this->getEmail(),
+            $this->getPhoneNumber(),
+        );
+
         $response = PayshopSdk::paymentOrders()->orders->createWithCreditCard(
             $operationType,
             $amount,
             $description,
             $expiresIn,
             $this->getCustomerKey(),
-            $routeParams
+            $routeParams,
+            $profile ? [...$params, 'profile' => $profile] : $params,
         );
 
         $data = $response['order'];
@@ -79,7 +90,9 @@ trait Payments
             $routeParams,
             $paymentMethod->phone_number,
             $this->getFirstName(),
-            $this->getLastName()
+            $this->getLastName(),
+            [],
+            $this->getEmail(),
         );
 
         $data = $response['order'];

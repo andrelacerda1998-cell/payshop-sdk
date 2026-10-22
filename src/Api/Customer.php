@@ -3,6 +3,7 @@
 namespace RwInteractive\PayshopSdk\Api;
 
 use RwInteractive\PayshopSdk\Api\Concerns\APIRequest;
+use RwInteractive\PayshopSdk\Support\CustomerData;
 
 class Customer
 {
@@ -23,6 +24,10 @@ class Customer
 
     public function createProfile($firstName, $lastName, $email, $customerId, $phone): void
     {
+        // O servidor guarda "+351912345678": com o prefixo à parte, o número
+        // ia com o 351 duas vezes. Um número estrangeiro vai como veio.
+        $numero = CustomerData::portuguesePhone($phone) ?? $phone;
+
         $payload = [
             'external_id' => $customerId,
             'first_name' => $firstName ?: '-',
@@ -30,15 +35,15 @@ class Customer
             'cardholder_name' => $firstName . ' ' . $lastName,
             'mobile_phone' => [
                 'prefix' => '+351',
-                'number' => $phone,
+                'number' => $numero,
             ],
             'home_phone' => [
                 'prefix' => '+351',
-                'number' => $phone,
+                'number' => $numero,
             ],
             'work_phone' => [
                 'prefix' => '+351',
-                'number' => $phone,
+                'number' => $numero,
             ],
         ];
 
@@ -51,6 +56,10 @@ class Customer
 
     public function updateProfile($firstName, $lastName, $email, $customerId, $phone): void
     {
+        // O servidor guarda "+351912345678": com o prefixo à parte, o número
+        // ia com o 351 duas vezes. Um número estrangeiro vai como veio.
+        $numero = CustomerData::portuguesePhone($phone) ?? $phone;
+
         $payload = [
             'external_id' => $customerId,
             'first_name' => $firstName ?: '-',
@@ -58,15 +67,15 @@ class Customer
             'cardholder_name' => $firstName . ' ' . $lastName,
             'mobile_phone' => [
                 'prefix' => '+351',
-                'number' => $phone,
+                'number' => $numero,
             ],
             'home_phone' => [
                 'prefix' => '+351',
-                'number' => $phone,
+                'number' => $numero,
             ],
             'work_phone' => [
                 'prefix' => '+351',
-                'number' => $phone,
+                'number' => $numero,
             ],
         ];
 

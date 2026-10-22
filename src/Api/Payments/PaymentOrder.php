@@ -13,6 +13,7 @@ use RwInteractive\PayshopSdk\Exceptions\Api\ApiMethodInvalid;
 use RwInteractive\PayshopSdk\Exceptions\Api\CreditCardValidationRequired;
 use RwInteractive\PayshopSdk\Exceptions\Api\InvalidAuthentication;
 use RwInteractive\PayshopSdk\Models\PaymentMethod;
+use RwInteractive\PayshopSdk\Support\CustomerData;
 
 class PaymentOrder
 {
@@ -48,18 +49,26 @@ class PaymentOrder
                       $firstName,
                       $lastName,
         array         $params = [],
+        ?string       $email = null,
     )
     {
+        $profile = [
+            "first_name" => $firstName,
+            "last_name" => $lastName,
+            "phone" => [
+                "number" => $mbwayNumber,
+                "prefix" => "351"
+            ]
+        ];
+
+        // EMV 3DS (c3): o email do cliente, quando o há. Um convidado não tem.
+        if ($mail = CustomerData::email($email)) {
+            $profile['email'] = $mail;
+        }
+
         $params = [
             ...$params,
-            'profile' => [
-                "first_name" => $firstName,
-                "last_name" => $lastName,
-                "phone" => [
-                    "number" => $mbwayNumber,
-                    "prefix" => "351"
-                ]
-            ]
+            'profile' => $profile,
         ];
 
         return $this->create($operationType, $amount, $description, $expiresIn, $customerId, $params, $routeParams, PaymentProvider::MBWAY);
@@ -123,16 +132,25 @@ class PaymentOrder
         PaymentMethod                                 $paymentMethod,
         \RwInteractive\PayshopSdk\Models\PaymentOrder $paymentOrder,
         ?int                                          $amount = null,
+        ?string                                       $customerIp = null,
     )
     {
         if ($amount === null) {
             $amount = $paymentOrder->amount;
         }
 
-        $response = $this->post($this->getEndpoint() . '/direct', [
+        $data = [
             'order_uuid' => $paymentOrder->uuid,
             'card_uuid' => $paymentMethod->uuid,
-        ]);
+        ];
+
+        // EMV 3DS (d1): o IP de quem está a pagar, quando é o cliente a fazer o
+        // pedido. Uma cobrança feita pelo servidor não tem IP do cliente.
+        if ($ip = CustomerData::ip($customerIp)) {
+            $data['customer_ip'] = $ip;
+        }
+
+        $response = $this->post($this->getEndpoint() . '/direct', $data);
 
         if (!$this->isSuccess($response)) {
             if ($response['status'] === 303) {
