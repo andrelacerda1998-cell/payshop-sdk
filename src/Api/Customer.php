@@ -3,6 +3,7 @@
 namespace RwInteractive\PayshopSdk\Api;
 
 use RwInteractive\PayshopSdk\Api\Concerns\APIRequest;
+use RwInteractive\PayshopSdk\Exceptions\Api\ApiError;
 use RwInteractive\PayshopSdk\Support\CustomerData;
 
 class Customer
@@ -15,7 +16,20 @@ class Customer
             'customer_ext_id' => $customerId,
         ]);
 
-        $this->createProfile($firstName, $lastName, $email, $customerId, $phone);
+        try {
+            $this->createProfile($firstName, $lastName, $email, $customerId, $phone);
+        } catch (ApiError $e) {
+            // 409 "Customer profile already exists": o perfil ficou criado numa
+            // tentativa anterior que não chegou a guardar o token do lado da
+            // app. Sem isto, o cliente nunca mais conseguia juntar um cartão
+            // (cada tentativa batia no mesmo 409). O cliente existe e o token
+            // veio no pedido acima: atualiza-se o perfil e segue.
+            if ($e->getCode() !== 409) {
+                throw $e;
+            }
+
+            $this->updateProfile($firstName, $lastName, $email, $customerId, $phone);
+        }
 
         $customerDetails = $response['response']['Customer'];
 
